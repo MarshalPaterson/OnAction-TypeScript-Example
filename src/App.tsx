@@ -1,77 +1,78 @@
 import React, { useEffect } from "react";
 import logo from "./logo.svg";
 import "./App.css";
-import {OnAction} from "onaction";
+import { OnAction } from "onaction";
 
-// class OnAction implements IOnActionListener {
-//   private static _instance: OnAction = new OnAction();
-//   private onActionListener = new Object();
-//   private onActionHashMap = new Map();
-
-//   constructor() {
-//     if (OnAction._instance) {
-//       throw new Error(
-//         "Error: Instantiation failed: Use OnAction.getInstance() instead of new."
-//       );
-//     }
-//     OnAction._instance = this;
-//   }
-
-//   public static getInstance(): OnAction {
-//     return OnAction._instance;
-//   }
-
-//   onAction(it: any): void {
-//     console.log("OnAction");
-//   }
-
-//   public doAction(type: string, it: any) {
-//     (this.onActionHashMap.get(type) as IOnActionListener).onAction(it);
-//   }
-
-//   public addOnAction(
-//     onActionType: string,
-//     onActionWithListener: IOnActionListener
-//   ) {
-//     this.onActionListener = onActionWithListener;
-//     this.onActionHashMap.set(onActionType, this.onActionListener);
-//   }
-// }
+let ONE_ACTION = "ONE_ACTION";
 
 interface IOnActionListener {
   onAction(it: any): void;
 }
 
+// Check if OnAction is available
+interface Video {
+  title: string;
+  videoUrl: string;
+  speaker: string;
+}
+
+const getAction = () => {
+  // Define the API URL
+  const apiUrl =
+    "https://my-json-server.typicode.com/kotlin-hands-on/kotlinconf-json/videos";
+
+  fetch(apiUrl)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      OnAction.getInstance().doAction(
+        ONE_ACTION,
+        data
+      );
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
+};
+
 function App() {
   useEffect(() => {
-    let ONE_ACTION = "ONE_ACTION";
-
-    var action: IOnActionListener = {
-      onAction: (it: any) => {
-        console.log(it);
-        alert(it)
+    const action: IOnActionListener = {
+      onAction: (it: Video[]) => {
+       
+        it.forEach((item: Video) => {
+          document.getElementById(
+            "mText"
+          )!.innerHTML += `<h3>${item.title}</h3>`;
+          document.getElementById(
+            "mText"
+          )!.innerHTML += `<a href="${item.videoUrl}" target="_blank">${item.videoUrl}</a>`;
+          document.getElementById(
+            "mText"
+          )!.innerHTML += `<p>${item.speaker}</p>`;
+        });
       },
     };
 
+    // Register the action listener
     OnAction.getInstance().addOnAction(ONE_ACTION, action);
-    OnAction.getInstance().doAction(ONE_ACTION, "NEW TEXT");
+
+    document.getElementById("bAction")!.addEventListener("click", () => {
+      getAction();
+    });
   }, []);
 
   return (
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <h1>OnAction - Typescript</h1>
+        <button id="bAction">User OnAction - Get some JSON</button>
+        <p id="mText"></p>
       </header>
     </div>
   );
